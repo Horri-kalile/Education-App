@@ -16,23 +16,45 @@ import { useAuth } from "../context/AuthContext";
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { login, signUp } = useAuth();
 
-  const handleLogin = async () => {
+  const handleAuth = async () => {
     if (!email || !password) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs");
+      Alert.alert("Erreur", "Veuillez remplir tous les champs requis");
+      return;
+    }
+
+    if (isSignUp && !fullName) {
+      Alert.alert("Erreur", "Veuillez entrer votre nom complet");
       return;
     }
 
     setIsLoading(true);
-    const result = await login(email, password);
-    setIsLoading(false);
 
-    if (result.success) {
-      // Navigation will be handled automatically by AppNavigator
-    } else {
-      Alert.alert("Erreur de connexion", result.error);
+    try {
+      let result;
+      if (isSignUp) {
+        result = await signUp(email, password, fullName);
+        if (result.success) {
+          Alert.alert("Succès", result.message || "Compte créé avec succès!", [
+            { text: "OK", onPress: () => setIsSignUp(false) },
+          ]);
+        } else {
+          Alert.alert("Erreur", result.error);
+        }
+      } else {
+        result = await login(email, password);
+        if (!result.success) {
+          Alert.alert("Erreur", result.error);
+        }
+      }
+    } catch (error) {
+      Alert.alert("Erreur", "Erreur de connexion");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -59,6 +81,18 @@ export default function LoginScreen() {
                 autoCorrect={false}
               />
 
+              {isSignUp && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nom complet"
+                  placeholderTextColor="#999"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                />
+              )}
+
               <TextInput
                 style={styles.input}
                 placeholder="Mot de passe"
@@ -72,27 +106,31 @@ export default function LoginScreen() {
 
               <TouchableOpacity
                 style={[styles.loginButton, isLoading && styles.disabledButton]}
-                onPress={handleLogin}
+                onPress={handleAuth}
                 disabled={isLoading}
               >
                 <Text style={styles.loginButtonText}>
-                  {isLoading ? "Connexion..." : "Se connecter"}
+                  {isLoading
+                    ? isSignUp
+                      ? "Création..."
+                      : "Connexion..."
+                    : isSignUp
+                    ? "Créer un compte"
+                    : "Se connecter"}
                 </Text>
               </TouchableOpacity>
 
-              <View style={styles.demoInfo}>
-                <Text style={styles.demoTitle}>🎭 Comptes de démonstration:</Text>
-                <Text style={styles.demoText}>
-                  👨‍🏫 <Text style={styles.bold}>Admin/Teacher:</Text>{"\n"}
-                  Email: admin@school.com{"\n"}
-                  Mot de passe: admin123
+              <TouchableOpacity
+                style={styles.switchButton}
+                onPress={() => setIsSignUp(!isSignUp)}
+                disabled={isLoading}
+              >
+                <Text style={styles.switchButtonText}>
+                  {isSignUp
+                    ? "Vous avez déjà un compte ? Se connecter"
+                    : "Pas de compte ? Créer un compte"}
                 </Text>
-                <Text style={styles.demoText}>
-                  👨‍🎓 <Text style={styles.bold}>Student:</Text>{"\n"}
-                  Email: student1@school.com{"\n"}
-                  Mot de passe: student123
-                </Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -160,29 +198,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  demoInfo: {
-    marginTop: 30,
-    padding: 20,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#e9ecef",
+  switchButton: {
+    marginTop: 15,
+    padding: 10,
   },
-  demoTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 15,
+  switchButtonText: {
     textAlign: "center",
-  },
-  demoText: {
+    color: "#667eea",
     fontSize: 14,
-    color: "#555",
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  bold: {
-    fontWeight: "bold",
-    color: "#333",
+    textDecorationLine: "underline",
   },
 });

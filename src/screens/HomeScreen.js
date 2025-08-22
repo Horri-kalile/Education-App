@@ -19,6 +19,8 @@ export default function HomeScreen({ navigation }) {
     console.log("HomeScreen: Auth state:", {
       user: user?.email,
       isAdmin,
+      isAdminType: typeof isAdmin,
+      userObject: user,
     });
   }, [user, isAdmin]);
 

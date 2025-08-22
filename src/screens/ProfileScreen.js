@@ -14,11 +14,22 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     console.log("ProfileScreen: handleLogout called");
+    console.log("ProfileScreen: Current user before logout:", {
+      hasUser: !!user,
+      userEmail: user?.email,
+    });
 
     // For web testing, let's try direct logout first
     if (Platform.OS === "web") {
       console.log("ProfileScreen: Direct logout for web");
       const result = await logout();
+      console.log("ProfileScreen: Logout result:", result);
+
+      // Add a small delay and check state again
+      setTimeout(() => {
+        console.log("ProfileScreen: Post-logout check - user state:", !!user);
+      }, 200);
+
       if (result.success) {
         console.log("ProfileScreen: Logout successful");
       } else {
@@ -75,6 +86,8 @@ export default function ProfileScreen() {
     user: user?.email,
     displayName,
     isAdmin,
+    isAdminType: typeof isAdmin,
+    userID: user?.id,
   });
 
   // If user just logged out, avoid rendering stale UI

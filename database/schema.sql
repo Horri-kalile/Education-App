@@ -11,44 +11,27 @@ CREATE TABLE IF NOT EXISTS public.students (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. Enable RLS (Row Level Security)
+-- 2. Enable Row Level Security
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 
--- 3. Simple RLS policies
--- Users can read their own record
-CREATE POLICY "Users can read own record" ON public.students
-  FOR SELECT USING (auth.uid() = id);
+-- 3. Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own profile" ON public.students;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.students;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.students;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.students;
+DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON public.students;
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.students;
 
--- Users can update their own record  
-CREATE POLICY "Users can update own record" ON public.students
+-- 4. Create new simplified policies
+-- Allow authenticated users to read all student profiles (needed for admin checks)
+CREATE POLICY "Enable read access for authenticated users" ON public.students
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Allow authenticated users to insert their own profile (for signup)
+CREATE POLICY "Enable insert for authenticated users only" ON public.students
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- Allow users to update their own profile
+CREATE POLICY "Enable update for users based on user_id" ON public.students
   FOR UPDATE USING (auth.uid() = id);
 
--- Users can insert their own record
-CREATE POLICY "Users can insert own record" ON public.students
-  FOR INSERT WITH CHECK (auth.uid() = id);
-
--- Admins can read all records
-CREATE POLICY "Admins can read all" ON public.students
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.students 
-      WHERE id = auth.uid() AND is_admin = true
-    )
-  );
-
--- 4. Auto-update timestamp function
-CREATE OR REPLACE FUNCTION public.update_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- 5. Trigger for auto-updating updated_at
-CREATE TRIGGER update_students_updated_at
-  BEFORE UPDATE ON public.students
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
--- 6. Grant permissions
-GRANT ALL ON public.students TO authenticated;
