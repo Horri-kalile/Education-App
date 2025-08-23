@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { Platform } from "react-native";
 import { supabase } from "../lib/supabase";
 
 const AuthContext = createContext();
@@ -203,6 +204,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      setIsLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: Platform.OS === 'web' ? `${window.location.origin}/auth/callback` : undefined,
+        },
+      });
+
+      if (error) {
+        setIsLoading(false);
+        return { success: false, error: error.message };
+      }
+
+      // For mobile, the OAuth flow will handle the login automatically
+      // The user state will be updated through the auth state listener
+      return { success: true };
+    } catch (error) {
+      setIsLoading(false);
+      return { success: false, error: error.message };
+    }
+  };
+
   const signUp = async (email, password, fullName) => {
     try {
       setIsLoading(true);
@@ -289,6 +315,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     login,
     signUp,
+    signInWithGoogle,
     logout,
   };
 

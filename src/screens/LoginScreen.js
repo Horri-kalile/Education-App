@@ -19,7 +19,21 @@ export default function LoginScreen() {
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const { login, signUp } = useAuth();
+  const { login, signUp, signInWithGoogle } = useAuth();
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (!result.success) {
+        Alert.alert("Erreur", result.error || "Erreur lors de la connexion avec Google");
+      }
+    } catch (error) {
+      Alert.alert("Erreur", "Erreur lors de la connexion avec Google");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -131,6 +145,22 @@ export default function LoginScreen() {
                     : "Pas de compte ? Créer un compte"}
                 </Text>
               </TouchableOpacity>
+
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>ou</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <TouchableOpacity
+                style={styles.googleButton}
+                onPress={handleGoogleSignIn}
+                disabled={isLoading}
+              >
+                <Text style={styles.googleButtonText}>
+                  🔍 Continuer avec Google
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -207,5 +237,36 @@ const styles = StyleSheet.create({
     color: "#667eea",
     fontSize: 14,
     textDecorationLine: "underline",
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ddd",
+  },
+  dividerText: {
+    marginHorizontal: 15,
+    color: "#666",
+    fontSize: 14,
+  },
+  googleButton: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  googleButtonText: {
+    color: "#333",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
