@@ -26,7 +26,10 @@ export default function LoginScreen() {
     try {
       const result = await signInWithGoogle();
       if (!result.success) {
-        Alert.alert("Erreur", result.error || "Erreur lors de la connexion avec Google");
+        Alert.alert(
+          "Erreur",
+          result.error || "Erreur lors de la connexion avec Google"
+        );
       }
     } catch (error) {
       Alert.alert("Erreur", "Erreur lors de la connexion avec Google");
