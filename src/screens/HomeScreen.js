@@ -8,28 +8,25 @@ import {
   RefreshControl,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { SAMPLE_ACTIVITIES } from "../data/sampleData";
+import { useActivities } from "../context/ActivitiesContext";
 
 export default function HomeScreen({ navigation }) {
   const { user, isAdmin } = useAuth();
-  const [activities, setActivities] = useState(SAMPLE_ACTIVITIES);
+  const { activities, isLoading, fetchActivities } = useActivities();
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     console.log("HomeScreen: Auth state:", {
       user: user?.email,
       isAdmin,
-      isAdminType: typeof isAdmin,
-      userObject: user,
+      activitiesCount: activities?.length || 0,
     });
-  }, [user, isAdmin]);
+  }, [user, isAdmin, activities]);
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setActivities(SAMPLE_ACTIVITIES);
-      setRefreshing(false);
-    }, 1000);
+    await fetchActivities();
+    setRefreshing(false);
   };
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("fr-FR", {
@@ -37,16 +34,6 @@ export default function HomeScreen({ navigation }) {
       month: "long",
       year: "numeric",
     });
-  };
-
-  const getSubjectColor = (subject) => {
-    const colors = {
-      Mathématiques: "#2196F3",
-      Histoire: "#FF9800",
-      Français: "#4CAF50",
-      Sciences: "#9C27B0",
-    };
-    return colors[subject] || "#666";
   };
 
   return (
@@ -95,19 +82,7 @@ export default function HomeScreen({ navigation }) {
               }
             >
               <View style={styles.cardHeader}>
-                <View
-                  style={[
-                    styles.subjectBadge,
-                    { backgroundColor: getSubjectColor(activity.subject) },
-                  ]}
-                >
-                  <Text style={styles.subjectText}>{activity.subject}</Text>
-                </View>
-                {isAdmin && (
-                  <Text style={styles.classLevelText}>
-                    {activity.classLevel}
-                  </Text>
-                )}
+                {isAdmin && <Text style={styles.createdByText}>Par vous</Text>}
               </View>
 
               <Text style={styles.activityTitle}>{activity.title}</Text>
@@ -117,7 +92,7 @@ export default function HomeScreen({ navigation }) {
 
               <View style={styles.cardFooter}>
                 <Text style={styles.dateText}>
-                  Créée le {formatDate(activity.createdAt)}
+                  Créée le {formatDate(activity.created_at)}
                 </Text>
                 <Text style={styles.viewText}>Voir →</Text>
               </View>
@@ -194,21 +169,11 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     marginBottom: 12,
   },
-  subjectBadge: {
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  subjectText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  classLevelText: {
+  createdByText: {
     fontSize: 12,
     color: "#666",
     fontWeight: "500",

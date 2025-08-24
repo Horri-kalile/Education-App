@@ -10,16 +10,18 @@ import {
 } from "react-native";
 import RenderHtml from "react-native-render-html";
 import { useAuth } from "../context/AuthContext";
+import { useActivities } from "../context/ActivitiesContext";
 
 const { width } = Dimensions.get("window");
 
 export default function ActivityDetailScreen({ route, navigation }) {
   const { activity } = route.params;
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  const { deleteActivity } = useActivities();
   const [showCorrection, setShowCorrection] = useState(false);
 
   const htmlSource = {
-    html: showCorrection ? activity.correction : activity.htmlContent,
+    html: showCorrection ? activity.correction : activity.content,
   };
 
   const tagsStyles = {
@@ -99,35 +101,61 @@ export default function ActivityDetailScreen({ route, navigation }) {
     });
   };
 
-  const getSubjectColor = (subject) => {
-    const colors = {
-      Mathématiques: "#2196F3",
-      Histoire: "#FF9800",
-      Français: "#4CAF50",
-      Sciences: "#9C27B0",
-    };
-    return colors[subject] || "#666";
+  const performDelete = async () => {
+    console.log("ActivityDetail: performDelete called!");
+    console.log("ActivityDetail: Starting delete for activity:", activity.id);
+    console.log("ActivityDetail: Activity created_by:", activity.created_by);
+    console.log("ActivityDetail: Current user ID:", user?.id);
+
+    try {
+      const result = await deleteActivity(activity.id);
+      console.log("ActivityDetail: Delete result:", result);
+
+      if (result.success) {
+        console.log("ActivityDetail: Delete successful, navigating back");
+        navigation.goBack();
+      } else {
+        console.error("ActivityDetail: Delete failed:", result.error);
+        Alert.alert("Erreur", result.error || "Erreur lors de la suppression");
+      }
+    } catch (error) {
+      console.error("ActivityDetail: Exception during delete:", error);
+      Alert.alert("Erreur", "Une erreur inattendue s'est produite");
+    }
   };
 
-  const handleDelete = async () => {
-    if (!isAdmin) return;
+  const handleDelete = () => {
+    console.log("ActivityDetail: handleDelete clicked!");
+    console.log("ActivityDetail: isAdmin:", isAdmin);
+
+    if (!isAdmin) {
+      console.log("ActivityDetail: User is not admin, returning");
+      return;
+    }
+
+    console.log(
+      "ActivityDetail: About to call performDelete directly for testing"
+    );
+    performDelete();
+
+    // Temporarily commented out Alert for testing
+    /*
+    console.log("ActivityDetail: Showing confirmation dialog");
+    
+    // Show confirmation dialog
     Alert.alert(
       "Supprimer l'activité",
       "Êtes-vous sûr de vouloir supprimer cette activité ? Cette action ne peut pas être annulée.",
       [
         { text: "Annuler", style: "cancel" },
-        {
-          text: "Supprimer",
-          style: "destructive",
-          onPress: async () => {
-            // Simulate delete from local data
-            Alert.alert("Succès", "Activité supprimée avec succès", [
-              { text: "OK", onPress: () => navigation.goBack() },
-            ]);
-          },
+        { 
+          text: "Supprimer", 
+          style: "destructive", 
+          onPress: performDelete
         },
       ]
     );
+    */
   };
 
   return (
@@ -140,15 +168,6 @@ export default function ActivityDetailScreen({ route, navigation }) {
         >
           <Text style={styles.backButtonText}>← Retour</Text>
         </TouchableOpacity>
-
-        <View
-          style={[
-            styles.subjectBadge,
-            { backgroundColor: getSubjectColor(activity.subject) },
-          ]}
-        >
-          <Text style={styles.subjectText}>{activity.subject}</Text>
-        </View>
       </View>
 
       {/* Activity Info */}
@@ -156,9 +175,8 @@ export default function ActivityDetailScreen({ route, navigation }) {
         <Text style={styles.activityTitle}>{activity.title}</Text>
         <Text style={styles.activityDescription}>{activity.description}</Text>
         <View style={styles.metaInfo}>
-          <Text style={styles.classLevel}>Classe: {activity.classLevel}</Text>
           <Text style={styles.date}>
-            Créée le {formatDate(activity.createdAt)}
+            Créée le {formatDate(activity.created_at)}
           </Text>
         </View>
       </View>
@@ -203,7 +221,13 @@ export default function ActivityDetailScreen({ route, navigation }) {
           >
             <Text style={styles.editButtonText}>✏️ Modifier</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => {
+              console.log("ActivityDetail: Delete button pressed!");
+              handleDelete();
+            }}
+          >
             <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
           </TouchableOpacity>
         </View>
@@ -219,7 +243,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "white",
     padding: 20,
@@ -234,16 +258,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#667eea",
     fontWeight: "500",
-  },
-  subjectBadge: {
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  subjectText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
   },
   activityInfo: {
     backgroundColor: "white",
@@ -264,12 +278,7 @@ const styles = StyleSheet.create({
   },
   metaInfo: {
     flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  classLevel: {
-    fontSize: 14,
-    color: "#999",
-    fontWeight: "500",
+    justifyContent: "flex-end",
   },
   date: {
     fontSize: 14,

@@ -10,28 +10,25 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "../context/AuthContext";
+import { useActivities } from "../context/ActivitiesContext";
 
 export default function AddActivityScreen({ navigation, route }) {
   const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState("Mathématiques");
   const [description, setDescription] = useState("");
-  const [htmlContent, setHtmlContent] = useState("");
+  const [content, setContent] = useState("");
   const [correction, setCorrection] = useState("");
   const [saving, setSaving] = useState(false);
   const editingActivity = route?.params?.activity || null;
   const { isAdmin } = useAuth();
-
-  const subjects = ["Mathématiques", "Histoire", "Français", "Sciences"];
+  const { createActivity, updateActivity } = useActivities();
 
   useEffect(() => {
     if (editingActivity) {
       setTitle(editingActivity.title);
-      setSubject(editingActivity.subject);
       setDescription(editingActivity.description);
-      setHtmlContent(editingActivity.htmlContent);
-      setCorrection(editingActivity.correction);
+      setContent(editingActivity.content);
+      setCorrection(editingActivity.correction || "");
     }
   }, [editingActivity]);
 
@@ -43,26 +40,43 @@ export default function AddActivityScreen({ navigation, route }) {
       );
       return;
     }
-    if (!title || !htmlContent) {
-      Alert.alert("Erreur", "Titre et contenu HTML sont obligatoires");
+
+    if (!title || !content || !description) {
+      Alert.alert("Erreur", "Titre, description et contenu sont obligatoires");
       return;
     }
 
     setSaving(true);
 
-    // Simulate save to local data
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      const activityData = {
+        title,
+        description,
+        content,
+        correction: correction || null,
+      };
+
+      let result;
       if (editingActivity) {
-        Alert.alert("Succès", "Activité mise à jour", [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
+        result = await updateActivity(editingActivity.id, activityData);
       } else {
-        Alert.alert("Succès", "Activité créée", [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
+        result = await createActivity(activityData);
       }
-    }, 1000);
+
+      if (result.success) {
+        Alert.alert(
+          "Succès",
+          editingActivity ? "Activité mise à jour" : "Activité créée",
+          [{ text: "OK", onPress: () => navigation.goBack() }]
+        );
+      } else {
+        Alert.alert("Erreur", result.error || "Une erreur est survenue");
+      }
+    } catch (error) {
+      Alert.alert("Erreur", "Une erreur est survenue lors de la sauvegarde");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -92,32 +106,17 @@ export default function AddActivityScreen({ navigation, route }) {
           <Text style={styles.label}>Titre *</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ex: Série 1: Les fonctions"
+            placeholder="Ex: Prog1: Algorithme de tri à bulles"
             value={title}
             onChangeText={setTitle}
           />
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.label}>Matière</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={subject}
-              onValueChange={setSubject}
-              style={styles.picker}
-            >
-              {subjects.map((subj) => (
-                <Picker.Item key={subj} label={subj} value={subj} />
-              ))}
-            </Picker>
-          </View>
-        </View>
-
-        <View style={styles.formSection}>
           <Text style={styles.label}>Description *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Description courte de l'activité"
+            placeholder="Description courte de l'activité (ex: Exercices sur les algorithmes de tri)"
             value={description}
             onChangeText={setDescription}
             multiline
@@ -132,9 +131,9 @@ export default function AddActivityScreen({ navigation, route }) {
           </Text>
           <TextInput
             style={[styles.input, styles.htmlInput]}
-            placeholder="<h2>Titre de l'exercice</h2><p>Contenu...</p>"
-            value={htmlContent}
-            onChangeText={setHtmlContent}
+            placeholder="<h2>Algorithme de Tri</h2><p>Implémentez un algorithme de tri...</p>"
+            value={content}
+            onChangeText={setContent}
             multiline
             numberOfLines={8}
           />
@@ -229,14 +228,5 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
     fontSize: 14,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    backgroundColor: "white",
-  },
-  picker: {
-    height: 50,
   },
 });

@@ -2,6 +2,7 @@ import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "./src/context/AuthContext";
+import { ActivitiesProvider } from "./src/context/ActivitiesContext";
 import AppNavigator from "./src/navigation/AppNavigator";
 
 export default function App() {
@@ -10,8 +11,10 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <AppNavigator />
-        <StatusBar style="auto" />
+        <ActivitiesProvider>
+          <AppNavigator />
+          <StatusBar style="auto" />
+        </ActivitiesProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );
