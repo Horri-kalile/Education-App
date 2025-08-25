@@ -10,7 +10,7 @@ const App: React.FC = () => {
       </Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

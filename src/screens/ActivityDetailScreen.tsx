@@ -14,7 +14,10 @@ import { useActivities } from "../context/ActivitiesContext";
 
 const { width } = Dimensions.get("window");
 
-export default function ActivityDetailScreen({ route, navigation }: any): React.ReactElement {
+export default function ActivityDetailScreen({
+  route,
+  navigation,
+}: any): React.ReactElement {
   const { activity } = route.params;
   const { isAdmin, user } = useAuth();
   const { deleteActivity } = useActivities();
@@ -108,12 +111,13 @@ export default function ActivityDetailScreen({ route, navigation }: any): React.
     console.log("ActivityDetail: Current user ID:", user?.id);
 
     try {
+      console.log("ActivityDetail: About to call deleteActivity function");
       const result = await deleteActivity(activity.id);
       console.log("ActivityDetail: Delete result:", result);
 
       if (result.success) {
-        console.log("ActivityDetail: Delete successful, navigating back");
-        navigation.goBack();
+        console.log("ActivityDetail: Delete successful, navigating to HomeMain");
+        navigation.navigate("HomeMain");
       } else {
         console.error("ActivityDetail: Delete failed:", result.error);
         Alert.alert("Erreur", result.error || "Erreur lors de la suppression");
@@ -133,29 +137,8 @@ export default function ActivityDetailScreen({ route, navigation }: any): React.
       return;
     }
 
-    console.log(
-      "ActivityDetail: About to call performDelete directly for testing"
-    );
+    console.log("ActivityDetail: Calling performDelete directly");
     performDelete();
-
-    // Temporarily commented out Alert for testing
-    /*
-    console.log("ActivityDetail: Showing confirmation dialog");
-    
-    // Show confirmation dialog
-    Alert.alert(
-      "Supprimer l'activité",
-      "Êtes-vous sûr de vouloir supprimer cette activité ? Cette action ne peut pas être annulée.",
-      [
-        { text: "Annuler", style: "cancel" },
-        { 
-          text: "Supprimer", 
-          style: "destructive", 
-          onPress: performDelete
-        },
-      ]
-    );
-    */
   };
 
   return (

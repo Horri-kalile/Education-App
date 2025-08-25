@@ -1,11 +1,11 @@
 // Import Supabase types
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 // Database Types
 export interface User {
   id: string;
   email?: string;
-  role: 'admin' | 'student';
+  role: "admin" | "student";
   created_at: string;
 }
 
@@ -58,10 +58,25 @@ export interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  signIn?: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn?: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string; needsVerification?: boolean; message?: string }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName?: string
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    needsVerification?: boolean;
+    message?: string;
+  }>;
   logout: () => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
 }
@@ -70,9 +85,16 @@ export interface ActivitiesContextType {
   activities: Activity[];
   isLoading: boolean;
   fetchActivities: () => Promise<{ success: boolean; error?: string }>;
-  createActivity: (activityData: Partial<Activity>) => Promise<{ success: boolean; data?: Activity; error?: string }>;
-  updateActivity: (activityId: string, activityData: Partial<Activity>) => Promise<{ success: boolean; data?: Activity; error?: string }>;
-  deleteActivity: (activityId: string) => Promise<{ success: boolean; error?: string }>;
+  createActivity: (
+    activityData: Partial<Activity>
+  ) => Promise<{ success: boolean; data?: Activity; error?: string }>;
+  updateActivity: (
+    activityId: string,
+    activityData: Partial<Activity>
+  ) => Promise<{ success: boolean; data?: Activity; error?: string }>;
+  deleteActivity: (
+    activityId: string
+  ) => Promise<{ success: boolean; error?: string }>;
   searchActivities: (searchTerm: string) => Activity[];
 }
 

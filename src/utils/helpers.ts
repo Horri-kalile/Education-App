@@ -1,5 +1,5 @@
 /**
- * Utility functions for the MR Naim Educational App
+ * Utility functions for the Educational App
  */
 
 /**
@@ -69,8 +69,9 @@ export const generateId = (): string => {
  * @returns Capitalized text
  */
 export const capitalizeWords = (text: string): string => {
-  return text.replace(/\w\S*/g, (txt) =>
-    txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  return text.replace(
+    /\w\S*/g,
+    (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
   );
 };
 
@@ -80,7 +81,7 @@ export const capitalizeWords = (text: string): string => {
  * @returns Promise that resolves after the delay
  */
 export const sleep = (ms: number): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 /**

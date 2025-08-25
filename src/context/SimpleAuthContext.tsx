@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Platform } from "react-native";
 import { supabase } from "../lib/supabase";
 import { AuthUser } from "../types";
@@ -86,7 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true, user: data.user };
     } catch (error: any) {
       console.error("AuthContext: Login exception:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     } finally {
       setIsLoading(false);
     }
@@ -106,11 +112,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true };
     } catch (error: any) {
       console.error("AuthContext: Logout exception:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     }
   };
 
-  const signUp = async (email: string, password: string, userData: any = {}) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    userData: any = {}
+  ) => {
     try {
       console.log("AuthContext: Starting signup with email:", email);
       setIsLoading(true);
@@ -139,7 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
     } catch (error: any) {
       console.error("AuthContext: Signup exception:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +176,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true };
     } catch (error: any) {
       console.error("AuthContext: Google sign in exception:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     } finally {
       setIsLoading(false);
     }

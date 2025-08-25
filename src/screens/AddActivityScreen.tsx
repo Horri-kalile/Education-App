@@ -13,7 +13,10 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useActivities } from "../context/ActivitiesContext";
 
-export default function AddActivityScreen({ route, navigation }: any): React.ReactElement {
+export default function AddActivityScreen({
+  route,
+  navigation,
+}: any): React.ReactElement {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
@@ -67,7 +70,7 @@ export default function AddActivityScreen({ route, navigation }: any): React.Rea
         Alert.alert(
           "Succès",
           editingActivity ? "Activité mise à jour" : "Activité créée",
-          [{ text: "OK", onPress: () => navigation.goBack() }]
+          [{ text: "OK", onPress: () => navigation.navigate("HomeMain") }]
         );
       } else {
         Alert.alert("Erreur", result.error || "Une erreur est survenue");

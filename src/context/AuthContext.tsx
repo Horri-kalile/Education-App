@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Platform } from "react-native";
 import { supabase } from "../lib/supabase";
 import { AuthContextType, AuthUser } from "../types";
@@ -159,8 +165,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
-      const userEmail = userData.user.email || '';
-      const fullNameDefault = userData.user.user_metadata?.full_name || userEmail.split("@")[0];
+      const userEmail = userData.user.email || "";
+      const fullNameDefault =
+        userData.user.user_metadata?.full_name || userEmail.split("@")[0];
 
       console.log("AuthContext: Creating profile with data:", {
         id: userId,
@@ -202,7 +209,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true };
     } catch (error: any) {
       setIsLoading(false);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     }
   };
 
@@ -230,7 +237,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true };
     } catch (error: any) {
       setIsLoading(false);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     }
   };
 
@@ -263,7 +270,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
     } catch (error: any) {
       setIsLoading(false);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     }
   };
 
@@ -291,7 +298,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (timeoutError: any) {
         console.warn(
           "AuthContext: SignOut timed out, proceeding with local logout:",
-          timeoutError?.message || 'Timeout error'
+          timeoutError?.message || "Timeout error"
         );
       }
 
@@ -310,7 +317,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsAdmin(false);
       setIsLoading(false);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     }
   };
 

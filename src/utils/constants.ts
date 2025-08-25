@@ -48,7 +48,7 @@ export const CARD_BORDER_RADIUS = 12;
 export const BUTTON_BORDER_RADIUS = 8;
 
 // Type exports for better type safety
-export type ClassLevel = typeof CLASS_LEVELS[keyof typeof CLASS_LEVELS];
-export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
-export type Subject = typeof SUBJECTS[number];
-export type AppColor = typeof COLORS[keyof typeof COLORS];
+export type ClassLevel = (typeof CLASS_LEVELS)[keyof typeof CLASS_LEVELS];
+export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+export type Subject = (typeof SUBJECTS)[number];
+export type AppColor = (typeof COLORS)[keyof typeof COLORS];
