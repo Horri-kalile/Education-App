@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-export default function App() {
+const App: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>🚀 MR Naim App Loading...</Text>
@@ -33,3 +33,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+export default App;

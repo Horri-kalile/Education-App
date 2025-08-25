@@ -13,7 +13,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useActivities } from "../context/ActivitiesContext";
 
-export default function AddActivityScreen({ navigation, route }) {
+export default function AddActivityScreen({ route, navigation }: any): React.ReactElement {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");

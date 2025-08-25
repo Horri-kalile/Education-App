@@ -1,7 +1,7 @@
 {
   "name": "mrnaimapp",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -34,7 +34,9 @@
     "react-native-web": "^0.20.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@types/react-dom": "^19.1.7",
+    "typescript": "~5.8.3"
   },
   "private": true
 }

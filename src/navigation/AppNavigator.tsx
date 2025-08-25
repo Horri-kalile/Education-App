@@ -10,7 +10,7 @@ import MainTabNavigator from "./MainTabNavigator";
 
 const Stack = createStackNavigator();
 
-export default function AppNavigator() {
+const AppNavigator: React.FC = () => {
   const { user, isLoading, isAuthenticated, isAdmin } = useAuth();
 
   console.log("AppNavigator: Current state:", {
@@ -63,7 +63,9 @@ export default function AppNavigator() {
       </Stack.Navigator>
     </NavigationContainer>
   );
-}
+};
+
+export default AppNavigator;
 
 const styles = StyleSheet.create({
   loadingContainer: {

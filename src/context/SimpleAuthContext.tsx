@@ -1,13 +1,30 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Platform } from "react-native";
 import { supabase } from "../lib/supabase";
+import { AuthUser } from "../types";
+
+interface SimpleAuthContextType {
+  user: AuthUser | null;
+  session: any;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<any>;
+  logout: () => Promise<any>;
+  signUp: (email: string, password: string, userData?: any) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+}
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
 /**
  * Simplified Authentication context for debugging
  */
-const AuthContext = createContext();
+const AuthContext = createContext<SimpleAuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+export const useAuth = (): SimpleAuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
@@ -15,10 +32,10 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [session, setSession] = useState(null);
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [session, setSession] = useState<any>(null);
 
   // Check for stored authentication on app start
   useEffect(() => {
@@ -50,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     try {
       console.log("AuthContext: Starting login with email:", email);
       setIsLoading(true);
@@ -67,9 +84,9 @@ export const AuthProvider = ({ children }) => {
 
       console.log("AuthContext: Login successful:", data.user?.email);
       return { success: true, user: data.user };
-    } catch (error) {
+    } catch (error: any) {
       console.error("AuthContext: Login exception:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
@@ -87,13 +104,13 @@ export const AuthProvider = ({ children }) => {
 
       console.log("AuthContext: Logout successful");
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error("AuthContext: Logout exception:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     }
   };
 
-  const signUp = async (email, password, userData = {}) => {
+  const signUp = async (email: string, password: string, userData: any = {}) => {
     try {
       console.log("AuthContext: Starting signup with email:", email);
       setIsLoading(true);
@@ -120,9 +137,9 @@ export const AuthProvider = ({ children }) => {
         user: data.user,
         needsVerification: !data.session,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("AuthContext: Signup exception:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
@@ -136,8 +153,7 @@ export const AuthProvider = ({ children }) => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo:
-            Platform.OS === "web" ? window.location.origin : undefined,
+          redirectTo: Platform.OS === "web" ? undefined : undefined,
         },
       });
 
@@ -148,9 +164,9 @@ export const AuthProvider = ({ children }) => {
 
       console.log("AuthContext: Google sign in initiated");
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error("AuthContext: Google sign in exception:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +182,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!session && !!user,
   });
 
-  const value = {
+  const value: SimpleAuthContextType = {
     user,
     session,
     isLoading,

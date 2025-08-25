@@ -1,10 +1,15 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./AuthContext";
+import { ActivitiesContextType, Activity, ApiResponse } from "../types";
 
-const ActivitiesContext = createContext();
+interface ActivitiesProviderProps {
+  children: ReactNode;
+}
 
-export const useActivities = () => {
+const ActivitiesContext = createContext<ActivitiesContextType | undefined>(undefined);
+
+export const useActivities = (): ActivitiesContextType => {
   const context = useContext(ActivitiesContext);
   if (!context) {
     throw new Error("useActivities must be used within an ActivitiesProvider");
@@ -12,13 +17,13 @@ export const useActivities = () => {
   return context;
 };
 
-export const ActivitiesProvider = ({ children }) => {
-  const [activities, setActivities] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({ children }) => {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { user, isAuthenticated } = useAuth();
 
   // Fetch all activities
-  const fetchActivities = async () => {
+  const fetchActivities = async (): Promise<ApiResponse<Activity[]>> => {
     try {
       setIsLoading(true);
       console.log("ActivitiesContext: Fetching activities...");
@@ -36,17 +41,17 @@ export const ActivitiesProvider = ({ children }) => {
 
       console.log("ActivitiesContext: Fetched activities:", data?.length || 0);
       setActivities(data || []);
-      return { success: true, data };
-    } catch (error) {
+      return { success: true, data: data || [] };
+    } catch (error: any) {
       console.error("ActivitiesContext: Exception in fetchActivities:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
   };
 
   // Create new activity (admin only)
-  const createActivity = async (activityData) => {
+  const createActivity = async (activityData: Partial<Activity>): Promise<ApiResponse<Activity>> => {
     try {
       if (!user) {
         return { success: false, error: "User not authenticated" };
@@ -81,16 +86,16 @@ export const ActivitiesProvider = ({ children }) => {
       setActivities((prev) => [data, ...prev]);
 
       return { success: true, data };
-    } catch (error) {
+    } catch (error: any) {
       console.error("ActivitiesContext: Exception in createActivity:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
   };
 
   // Update activity (admin only)
-  const updateActivity = async (activityId, activityData) => {
+  const updateActivity = async (activityId: string, activityData: Partial<Activity>): Promise<ApiResponse<Activity>> => {
     try {
       if (!user) {
         return { success: false, error: "User not authenticated" };
@@ -128,16 +133,16 @@ export const ActivitiesProvider = ({ children }) => {
       );
 
       return { success: true, data };
-    } catch (error) {
+    } catch (error: any) {
       console.error("ActivitiesContext: Exception in updateActivity:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
   };
 
   // Delete activity (admin only)
-  const deleteActivity = async (activityId) => {
+  const deleteActivity = async (activityId: string): Promise<ApiResponse> => {
     try {
       if (!user) {
         console.error("ActivitiesContext: No user found for delete");
@@ -177,16 +182,16 @@ export const ActivitiesProvider = ({ children }) => {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error("ActivitiesContext: Exception in deleteActivity:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
   };
 
   // Get activities by searching title (for filtering if needed)
-  const searchActivities = (searchTerm) => {
+  const searchActivities = (searchTerm: string): Activity[] => {
     return activities.filter(
       (activity) =>
         activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

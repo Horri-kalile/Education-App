@@ -1,10 +1,15 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Platform } from "react-native";
 import { supabase } from "../lib/supabase";
+import { AuthContextType, AuthUser } from "../types";
 
-const AuthContext = createContext();
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-export const useAuth = () => {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
@@ -12,11 +17,11 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [roleChecked, setRoleChecked] = useState(false); // Add flag to prevent infinite loop
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [roleChecked, setRoleChecked] = useState<boolean>(false);
 
   // Failsafe: force stop loading after 10 seconds to avoid infinite spinner
   useEffect(() => {
@@ -73,7 +78,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user, roleChecked]); // This runs whenever 'user' or 'roleChecked' changes
 
-  const checkUserRole = async (userId) => {
+  const checkUserRole = async (userId: string): Promise<void> => {
     try {
       console.log("AuthContext: checkUserRole starting for", userId);
       console.log("AuthContext: Current user object:", user);
@@ -92,10 +97,8 @@ export const AuthProvider = ({ children }) => {
           setTimeout(() => reject(new Error("Database query timeout")), 8000)
         );
 
-        const { data, error } = await Promise.race([
-          queryPromise,
-          timeoutPromise,
-        ]);
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        const { data, error } = result as any;
 
         console.log("AuthContext: Database query result:", { data, error });
 
@@ -127,8 +130,8 @@ export const AuthProvider = ({ children }) => {
         console.log("AuthContext: No user email found, defaulting to student");
         setIsAdmin(false);
       }
-    } catch (error) {
-      if (error.message === "Database query timeout") {
+    } catch (error: any) {
+      if (error?.message === "Database query timeout") {
         console.warn(
           "AuthContext: Database query timed out, defaulting to student"
         );
@@ -146,7 +149,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const createStudentProfile = async (userId) => {
+  const createStudentProfile = async (userId: string): Promise<void> => {
     try {
       console.log("AuthContext: createStudentProfile starting for", userId);
 
@@ -156,20 +159,19 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      const userEmail = userData.user.email || '';
+      const fullNameDefault = userData.user.user_metadata?.full_name || userEmail.split("@")[0];
+
       console.log("AuthContext: Creating profile with data:", {
         id: userId,
-        email: userData.user.email,
-        full_name:
-          userData.user.user_metadata?.full_name ||
-          userData.user.email.split("@")[0],
+        email: userEmail,
+        full_name: fullNameDefault,
       });
 
       const { error } = await supabase.from("students").insert({
         id: userId,
-        email: userData.user.email,
-        full_name:
-          userData.user.user_metadata?.full_name ||
-          userData.user.email.split("@")[0],
+        email: userEmail,
+        full_name: fullNameDefault,
         is_admin: false,
       });
 
@@ -178,12 +180,12 @@ export const AuthProvider = ({ children }) => {
       } else {
         console.log("AuthContext: Student profile created successfully");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("AuthContext: Exception in createStudentProfile:", error);
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
 
@@ -198,9 +200,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     }
   };
 
@@ -213,7 +215,7 @@ export const AuthProvider = ({ children }) => {
         options: {
           redirectTo:
             Platform.OS === "web"
-              ? `${window.location.origin}/auth/callback`
+              ? undefined // Will be handled by Supabase web flow
               : undefined,
         },
       });
@@ -226,13 +228,13 @@ export const AuthProvider = ({ children }) => {
       // For mobile, the OAuth flow will handle the login automatically
       // The user state will be updated through the auth state listener
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     }
   };
 
-  const signUp = async (email, password, fullName) => {
+  const signUp = async (email: string, password: string, fullName?: string) => {
     try {
       setIsLoading(true);
 
@@ -259,9 +261,9 @@ export const AuthProvider = ({ children }) => {
         message:
           "Compte créé avec succès! Vous pouvez maintenant vous connecter.",
       };
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     }
   };
 
@@ -278,17 +280,18 @@ export const AuthProvider = ({ children }) => {
 
       try {
         console.log("AuthContext: Calling supabase.auth.signOut()");
-        const { error } = await Promise.race([signOutPromise, timeoutPromise]);
+        const result = await Promise.race([signOutPromise, timeoutPromise]);
+        const { error } = result as any;
 
         if (error) {
           console.error("AuthContext: Logout error:", error);
         } else {
           console.log("AuthContext: Supabase signOut successful");
         }
-      } catch (timeoutError) {
+      } catch (timeoutError: any) {
         console.warn(
           "AuthContext: SignOut timed out, proceeding with local logout:",
-          timeoutError.message
+          timeoutError?.message || 'Timeout error'
         );
       }
 
@@ -300,14 +303,14 @@ export const AuthProvider = ({ children }) => {
 
       console.log("AuthContext: Logout completed successfully");
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error("AuthContext: Exception in logout:", error);
       // Still clear state even if there's an error
       console.log("AuthContext: Clearing state due to error");
       setUser(null);
       setIsAdmin(false);
       setIsLoading(false);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     }
   };
 

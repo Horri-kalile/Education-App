@@ -14,7 +14,7 @@ import { useActivities } from "../context/ActivitiesContext";
 
 const { width } = Dimensions.get("window");
 
-export default function ActivityDetailScreen({ route, navigation }) {
+export default function ActivityDetailScreen({ route, navigation }: any): React.ReactElement {
   const { activity } = route.params;
   const { isAdmin, user } = useAuth();
   const { deleteActivity } = useActivities();
@@ -93,7 +93,7 @@ export default function ActivityDetailScreen({ route, navigation }) {
     },
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString("fr-FR", {
       day: "numeric",
       month: "long",
@@ -207,7 +207,7 @@ export default function ActivityDetailScreen({ route, navigation }) {
           <RenderHtml
             contentWidth={width - 40}
             source={htmlSource}
-            tagsStyles={tagsStyles}
+            tagsStyles={tagsStyles as any}
           />
         </View>
       </ScrollView>

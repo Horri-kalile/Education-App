@@ -5,8 +5,8 @@ import { AuthProvider } from "./src/context/AuthContext";
 import { ActivitiesProvider } from "./src/context/ActivitiesContext";
 import AppNavigator from "./src/navigation/AppNavigator";
 
-export default function App() {
-  console.log("App.js loading with full navigation...");
+const App: React.FC = () => {
+  console.log("App.tsx loading with full navigation...");
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -18,4 +18,6 @@ export default function App() {
       </AuthProvider>
     </GestureHandlerRootView>
   );
-}
+};
+
+export default App;

@@ -7,12 +7,14 @@ import {
   StyleSheet,
   RefreshControl,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { useActivities } from "../context/ActivitiesContext";
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen(): React.ReactElement {
   const { user, isAdmin } = useAuth();
   const { activities, isLoading, fetchActivities } = useActivities();
+  const navigation = useNavigation<any>();
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function HomeScreen({ navigation }) {
     await fetchActivities();
     setRefreshing(false);
   };
-  const formatDate = (date) => {
+  const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString("fr-FR", {
       day: "numeric",
       month: "long",

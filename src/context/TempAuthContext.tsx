@@ -1,12 +1,45 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+
+interface TempUser {
+  id: string;
+  email: string;
+  password: string;
+  role: string;
+  name: string;
+}
+
+interface TempAuthUser {
+  id: string;
+  email: string;
+  user_metadata: {
+    name: string;
+    role: string;
+  };
+}
+
+interface TempAuthContextType {
+  user: TempAuthUser | null;
+  session: any;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<any>;
+  logout: () => Promise<any>;
+  signUp: (email: string, password: string, userData?: any) => Promise<any>;
+  updateUser: (userData: any) => Promise<any>;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+}
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
 /**
  * Temporary Authentication context using local storage
  * This will work until Supabase is properly configured
  */
-const AuthContext = createContext();
+const AuthContext = createContext<TempAuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+export const useAuth = (): TempAuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
@@ -14,13 +47,13 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [session, setSession] = useState(null);
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<TempAuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [session, setSession] = useState<any>(null);
 
   // Simple local users database for testing
-  const localUsers = [
+  const localUsers: TempUser[] = [
     {
       id: "1",
       email: "admin@mrnaimapp.com",
@@ -39,21 +72,23 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check for stored session
-    const storedUser = localStorage.getItem("tempUser");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setSession({ user: userData });
-      } catch (error) {
-        console.error("Error parsing stored user:", error);
-        localStorage.removeItem("tempUser");
+    if (typeof localStorage !== 'undefined') {
+      const storedUser = localStorage.getItem("tempUser");
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          setSession({ user: userData });
+        } catch (error) {
+          console.error("Error parsing stored user:", error);
+          localStorage.removeItem("tempUser");
+        }
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     try {
       console.log("Temp AuthContext: Starting login with email:", email);
       setIsLoading(true);
@@ -71,7 +106,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Create user object similar to Supabase format
-      const userData = {
+      const userData: TempAuthUser = {
         id: foundUser.id,
         email: foundUser.email,
         user_metadata: {
@@ -81,22 +116,24 @@ export const AuthProvider = ({ children }) => {
       };
 
       // Store in localStorage
-      localStorage.setItem("tempUser", JSON.stringify(userData));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem("tempUser", JSON.stringify(userData));
+      }
 
       setUser(userData);
       setSession({ user: userData });
 
       console.log("Temp AuthContext: Login successful:", userData);
       return { success: true, user: userData };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Temp AuthContext: Login error:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signUp = async (email, password, userData = {}) => {
+  const signUp = async (email: string, password: string, userData: any = {}) => {
     try {
       console.log("Temp AuthContext: Starting signup with email:", email);
       setIsLoading(true);
@@ -114,7 +151,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Create new user
-      const newUser = {
+      const newUser: TempAuthUser = {
         id: Date.now().toString(),
         email: email,
         user_metadata: {
@@ -134,9 +171,9 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Temp AuthContext: Signup successful:", newUser);
       return { success: true, user: newUser, needsVerification: false };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Temp AuthContext: Signup error:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
@@ -145,33 +182,37 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       console.log("Temp AuthContext: Starting logout...");
-      localStorage.removeItem("tempUser");
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem("tempUser");
+      }
       setUser(null);
       setSession(null);
       console.log("Temp AuthContext: Logout successful");
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Temp AuthContext: Logout error:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     }
   };
 
-  const updateUser = async (userData) => {
+  const updateUser = async (userData: any) => {
     try {
       const updatedUser = {
-        ...user,
-        user_metadata: { ...user.user_metadata, ...userData },
+        ...user!,
+        user_metadata: { ...user!.user_metadata, ...userData },
       };
-      localStorage.setItem("tempUser", JSON.stringify(updatedUser));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem("tempUser", JSON.stringify(updatedUser));
+      }
       setUser(updatedUser);
       return { success: true, user: updatedUser };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Temp AuthContext: Update user error:", error);
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || 'Unknown error' };
     }
   };
 
-  const value = {
+  const value: TempAuthContextType = {
     user,
     session,
     isLoading,
@@ -180,8 +221,9 @@ export const AuthProvider = ({ children }) => {
     signUp,
     updateUser,
     isAuthenticated: !!session && !!user,
-    isAdmin:
-      user?.user_metadata?.role === "admin" || user?.email?.includes("admin"),
+    isAdmin: !!(
+      user?.user_metadata?.role === "admin" || user?.email?.includes("admin")
+    ),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

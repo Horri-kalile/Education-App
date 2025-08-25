@@ -8,8 +8,15 @@ import { Platform } from "react-native";
 
 const isWeb = Platform.OS === "web";
 
-export const StorageService = {
-  async getItem(key) {
+export interface StorageServiceInterface {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<boolean>;
+  removeItem(key: string): Promise<boolean>;
+  deleteItem(key: string): Promise<boolean>;
+}
+
+export const StorageService: StorageServiceInterface = {
+  async getItem(key: string): Promise<string | null> {
     try {
       if (isWeb) {
         // Use localStorage for web
@@ -24,7 +31,7 @@ export const StorageService = {
     }
   },
 
-  async setItem(key, value) {
+  async setItem(key: string, value: string): Promise<boolean> {
     try {
       if (isWeb) {
         // Use localStorage for web
@@ -41,7 +48,7 @@ export const StorageService = {
     }
   },
 
-  async removeItem(key) {
+  async removeItem(key: string): Promise<boolean> {
     try {
       if (isWeb) {
         // Use localStorage for web
@@ -58,7 +65,7 @@ export const StorageService = {
     }
   },
 
-  async deleteItem(key) {
+  async deleteItem(key: string): Promise<boolean> {
     try {
       if (isWeb) {
         // Use localStorage for web

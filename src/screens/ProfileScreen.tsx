@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 
-export default function ProfileScreen() {
+export default function ProfileScreen(): React.ReactElement {
   const { user, logout, isAdmin } = useAuth();
 
   const handleLogout = async () => {

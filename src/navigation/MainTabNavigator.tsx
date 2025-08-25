@@ -14,7 +14,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Home Stack for navigation within home section
-function HomeStack() {
+const HomeStack: React.FC = () => {
   const { isAdmin } = useAuth();
 
   return (
@@ -34,9 +34,9 @@ function HomeStack() {
       )}
     </Stack.Navigator>
   );
-}
+};
 
-export default function MainTabNavigator() {
+const MainTabNavigator: React.FC = () => {
   const { isAdmin } = useAuth();
 
   return (
@@ -82,4 +82,6 @@ export default function MainTabNavigator() {
       />
     </Tab.Navigator>
   );
-}
+};
+
+export default MainTabNavigator;

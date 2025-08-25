@@ -1,7 +1,47 @@
 import { supabase } from "../lib/supabase";
 
+interface ActivityRow {
+  id: string;
+  title: string;
+  subject: string;
+  description?: string;
+  html_content: string;
+  correction_html?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
+interface ActivityModel {
+  id: string;
+  title: string;
+  subject: string;
+  description: string;
+  htmlContent: string;
+  correction: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
+interface CreateActivityParams {
+  title: string;
+  subject: string;
+  description: string;
+  htmlContent: string;
+  correction?: string;
+}
+
+interface UpdateActivityParams {
+  title?: string;
+  subject?: string;
+  description?: string;
+  htmlContent?: string;
+  correction?: string;
+}
+
 // Map DB row -> app model
-const mapRow = (r) => ({
+const mapRow = (r: ActivityRow): ActivityModel => ({
   id: r.id,
   title: r.title,
   subject: r.subject,
@@ -13,7 +53,7 @@ const mapRow = (r) => ({
   createdBy: r.created_by,
 });
 
-export async function listActivities() {
+export async function listActivities(): Promise<ActivityModel[]> {
   const { data, error } = await supabase
     .from("activities")
     .select(
@@ -30,7 +70,7 @@ export async function createActivity({
   description,
   htmlContent,
   correction,
-}) {
+}: CreateActivityParams): Promise<ActivityModel> {
   const { data, error } = await supabase
     .from("activities")
     .insert({
@@ -47,9 +87,9 @@ export async function createActivity({
 }
 
 export async function updateActivity(
-  id,
-  { title, subject, description, htmlContent, correction }
-) {
+  id: string,
+  { title, subject, description, htmlContent, correction }: UpdateActivityParams
+): Promise<ActivityModel> {
   const { data, error } = await supabase
     .from("activities")
     .update({
@@ -66,7 +106,7 @@ export async function updateActivity(
   return mapRow(data);
 }
 
-export async function deleteActivity(id) {
+export async function deleteActivity(id: string): Promise<boolean> {
   const { error } = await supabase.from("activities").delete().eq("id", id);
   if (error) throw error;
   return true;

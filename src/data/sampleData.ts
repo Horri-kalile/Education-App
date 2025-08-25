@@ -9,10 +9,31 @@ export const CLASS_LEVELS = {
   SECOND_YEAR: "2ème année",
   THIRD_YEAR: "3ème année",
   BAC: "Bac",
-};
+} as const;
+
+interface SampleUser {
+  id: string;
+  email: string;
+  password: string;
+  name: string;
+  role: "admin" | "student";
+  classLevel?: string;
+}
+
+interface SampleActivity {
+  id: string;
+  title: string;
+  subject: string;
+  classLevel: string;
+  description: string;
+  htmlContent: string;
+  correction: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // Sample users data
-export const SAMPLE_USERS = [
+export const SAMPLE_USERS: SampleUser[] = [
   {
     id: "1",
     email: "admin@school.com",
@@ -39,7 +60,7 @@ export const SAMPLE_USERS = [
 ];
 
 // Sample activities/series data
-export const SAMPLE_ACTIVITIES = [
+export const SAMPLE_ACTIVITIES: SampleActivity[] = [
   {
     id: "1",
     title: "Série 1: Les fonctions",
@@ -226,14 +247,14 @@ export const SAMPLE_ACTIVITIES = [
 ];
 
 // Function to get activities by class level
-export const getActivitiesByClass = (classLevel) => {
+export const getActivitiesByClass = (classLevel: string): SampleActivity[] => {
   return SAMPLE_ACTIVITIES.filter(
     (activity) => activity.classLevel === classLevel
   );
 };
 
 // Function to authenticate user
-export const authenticateUser = (email, password) => {
+export const authenticateUser = (email: string, password: string): SampleUser | undefined => {
   return SAMPLE_USERS.find(
     (user) => user.email === email && user.password === password
   );
