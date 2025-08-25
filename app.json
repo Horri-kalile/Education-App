@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MRNaimApp",
-    "slug": "MRNaimApp",
+    "name": "EducationApp",
+    "slug": "EducationApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

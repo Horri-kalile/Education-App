@@ -116,7 +116,9 @@ export default function ActivityDetailScreen({
       console.log("ActivityDetail: Delete result:", result);
 
       if (result.success) {
-        console.log("ActivityDetail: Delete successful, navigating to HomeMain");
+        console.log(
+          "ActivityDetail: Delete successful, navigating to HomeMain"
+        );
         navigation.navigate("HomeMain");
       } else {
         console.error("ActivityDetail: Delete failed:", result.error);
