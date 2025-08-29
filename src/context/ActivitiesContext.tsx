@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./AuthContext";
 import { ActivitiesContextType, Activity, ApiResponse } from "../types";
@@ -7,7 +13,9 @@ interface ActivitiesProviderProps {
   children: ReactNode;
 }
 
-const ActivitiesContext = createContext<ActivitiesContextType | undefined>(undefined);
+const ActivitiesContext = createContext<ActivitiesContextType | undefined>(
+  undefined
+);
 
 export const useActivities = (): ActivitiesContextType => {
   const context = useContext(ActivitiesContext);
@@ -17,22 +25,53 @@ export const useActivities = (): ActivitiesContextType => {
   return context;
 };
 
-export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({ children }) => {
+export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({
+  children,
+}) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { user, isAuthenticated } = useAuth();
 
-  // Fetch all activities
-  const fetchActivities = async (): Promise<ApiResponse<Activity[]>> => {
+  // Fetch all activities with optional filtering
+  const fetchActivities = async (
+    categoryId?: string | null,
+    levelId?: string | null
+  ): Promise<ApiResponse<Activity[]>> => {
     try {
       setIsLoading(true);
-      console.log("ActivitiesContext: Fetching activities...");
+      console.log("ActivitiesContext: Fetching activities...", {
+        categoryId,
+        levelId,
+      });
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("activities")
-        .select("*")
-        .eq("is_published", true)
-        .order("created_at", { ascending: false });
+        .select(
+          `
+          *,
+          categories (
+            id,
+            name
+          ),
+          levels (
+            id,
+            name
+          )
+        `
+        )
+        .eq("is_published", true);
+
+      // Apply filters if provided
+      if (categoryId) {
+        query = query.eq("category_id", categoryId);
+      }
+      if (levelId) {
+        query = query.eq("level_id", levelId);
+      }
+
+      const { data, error } = await query.order("created_at", {
+        ascending: false,
+      });
 
       if (error) {
         console.error("ActivitiesContext: Error fetching activities:", error);
@@ -44,14 +83,16 @@ export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({ children
       return { success: true, data: data || [] };
     } catch (error: any) {
       console.error("ActivitiesContext: Exception in fetchActivities:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     } finally {
       setIsLoading(false);
     }
   };
 
   // Create new activity (admin only)
-  const createActivity = async (activityData: Partial<Activity>): Promise<ApiResponse<Activity>> => {
+  const createActivity = async (
+    activityData: Partial<Activity>
+  ): Promise<ApiResponse<Activity>> => {
     try {
       if (!user) {
         return { success: false, error: "User not authenticated" };
@@ -88,14 +129,17 @@ export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({ children
       return { success: true, data };
     } catch (error: any) {
       console.error("ActivitiesContext: Exception in createActivity:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     } finally {
       setIsLoading(false);
     }
   };
 
   // Update activity (admin only)
-  const updateActivity = async (activityId: string, activityData: Partial<Activity>): Promise<ApiResponse<Activity>> => {
+  const updateActivity = async (
+    activityId: string,
+    activityData: Partial<Activity>
+  ): Promise<ApiResponse<Activity>> => {
     try {
       if (!user) {
         return { success: false, error: "User not authenticated" };
@@ -135,7 +179,7 @@ export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({ children
       return { success: true, data };
     } catch (error: any) {
       console.error("ActivitiesContext: Exception in updateActivity:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     } finally {
       setIsLoading(false);
     }
@@ -184,10 +228,18 @@ export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({ children
       return { success: true };
     } catch (error: any) {
       console.error("ActivitiesContext: Exception in deleteActivity:", error);
-      return { success: false, error: error?.message || 'Unknown error' };
+      return { success: false, error: error?.message || "Unknown error" };
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Filter activities by category and/or level
+  const filterActivities = (
+    categoryId: string | null,
+    levelId: string | null
+  ): void => {
+    fetchActivities(categoryId, levelId);
   };
 
   // Get activities by searching title (for filtering if needed)
@@ -216,6 +268,7 @@ export const ActivitiesProvider: React.FC<ActivitiesProviderProps> = ({ children
     updateActivity,
     deleteActivity,
     searchActivities,
+    filterActivities,
   };
 
   return (

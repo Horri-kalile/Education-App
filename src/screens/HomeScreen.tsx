@@ -10,12 +10,18 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { useActivities } from "../context/ActivitiesContext";
+import ActivityFilter from "../components/ActivityFilter";
 
 export default function HomeScreen(): React.ReactElement {
   const { user, isAdmin } = useAuth();
-  const { activities, isLoading, fetchActivities } = useActivities();
+  const { activities, isLoading, fetchActivities, filterActivities } =
+    useActivities();
   const navigation = useNavigation<any>();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
+  const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("HomeScreen: Auth state:", {
@@ -27,8 +33,17 @@ export default function HomeScreen(): React.ReactElement {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchActivities();
+    await fetchActivities(selectedCategoryId, selectedLevelId);
     setRefreshing(false);
+  };
+
+  const handleFilterChange = (
+    categoryId: string | null,
+    levelId: string | null
+  ) => {
+    setSelectedCategoryId(categoryId);
+    setSelectedLevelId(levelId);
+    filterActivities(categoryId, levelId);
   };
   const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString("fr-FR", {
@@ -62,6 +77,15 @@ export default function HomeScreen(): React.ReactElement {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Only show filter for students */}
+        {!isAdmin && (
+          <ActivityFilter
+            onFilterChange={handleFilterChange}
+            selectedCategoryId={selectedCategoryId}
+            selectedLevelId={selectedLevelId}
+          />
+        )}
+
         <Text style={styles.sectionTitle}>
           {isAdmin ? "Toutes les activités" : "Vos activités"}
         </Text>
@@ -91,6 +115,24 @@ export default function HomeScreen(): React.ReactElement {
               <Text style={styles.activityDescription}>
                 {activity.description}
               </Text>
+
+              {/* Category and Level badges */}
+              <View style={styles.badgeContainer}>
+                {activity.categories && (
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.badgeText}>
+                      📚 {activity.categories.name}
+                    </Text>
+                  </View>
+                )}
+                {activity.levels && (
+                  <View style={styles.levelBadge}>
+                    <Text style={styles.badgeText}>
+                      🎓 {activity.levels.name}
+                    </Text>
+                  </View>
+                )}
+              </View>
 
               <View style={styles.cardFooter}>
                 <Text style={styles.dateText}>
@@ -205,5 +247,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#667eea",
     fontWeight: "500",
+  },
+  badgeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 12,
+    gap: 8,
+  },
+  categoryBadge: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+  },
+  levelBadge: {
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#374151",
   },
 });

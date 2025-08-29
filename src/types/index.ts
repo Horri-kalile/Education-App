@@ -20,8 +20,19 @@ export interface Activity {
   correction?: string | null;
   created_by: string;
   is_published: boolean;
+  category_id?: string | null;
+  level_id?: string | null;
   created_at: string;
   updated_at?: string;
+  categories?: Category;
+  levels?: Level;
+}
+
+export interface Level {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
 }
 
 export interface Category {
@@ -84,7 +95,10 @@ export interface AuthContextType {
 export interface ActivitiesContextType {
   activities: Activity[];
   isLoading: boolean;
-  fetchActivities: () => Promise<{ success: boolean; error?: string }>;
+  fetchActivities: (
+    categoryId?: string | null,
+    levelId?: string | null
+  ) => Promise<{ success: boolean; error?: string }>;
   createActivity: (
     activityData: Partial<Activity>
   ) => Promise<{ success: boolean; data?: Activity; error?: string }>;
@@ -96,6 +110,7 @@ export interface ActivitiesContextType {
     activityId: string
   ) => Promise<{ success: boolean; error?: string }>;
   searchActivities: (searchTerm: string) => Activity[];
+  filterActivities: (categoryId: string | null, levelId: string | null) => void;
 }
 
 // Navigation Types
