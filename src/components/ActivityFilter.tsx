@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Modal,
+  ScrollView,
 } from "react-native";
 import { supabase } from "../lib/supabase";
 
@@ -32,6 +33,8 @@ const ActivityFilter: React.FC<FilterProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showLevelModal, setShowLevelModal] = useState(false);
 
   useEffect(() => {
     fetchFilterOptions();
@@ -74,15 +77,27 @@ const ActivityFilter: React.FC<FilterProps> = ({
   const handleCategoryPress = (categoryId: string) => {
     const newCategoryId = selectedCategoryId === categoryId ? null : categoryId;
     onFilterChange(newCategoryId, selectedLevelId);
+    setShowCategoryModal(false);
   };
 
   const handleLevelPress = (levelId: string) => {
     const newLevelId = selectedLevelId === levelId ? null : levelId;
     onFilterChange(selectedCategoryId, newLevelId);
+    setShowLevelModal(false);
   };
 
   const clearAllFilters = () => {
     onFilterChange(null, null);
+  };
+
+  const getSelectedCategoryName = () => {
+    const category = categories.find((c) => c.id === selectedCategoryId);
+    return category ? category.name : "Toutes les catégories";
+  };
+
+  const getSelectedLevelName = () => {
+    const level = levels.find((l) => l.id === selectedLevelId);
+    return level ? level.name : "Tous les niveaux";
   };
 
   if (isLoading) {

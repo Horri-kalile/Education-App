@@ -1,7 +1,6 @@
 import React from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Text } from "react-native";
 import { useAuth } from "../context/AuthContext";
 
 // Import screens
@@ -14,8 +13,9 @@ import LevelsScreen from "../screens/LevelsScreen";
 import AllActivitiesScreen from "../screens/AllActivitiesScreen";
 import CategoryActivitiesScreen from "../screens/CategoryActivitiesScreen";
 import LevelActivitiesScreen from "../screens/LevelActivitiesScreen";
+import CustomDrawerContent from "../components/CustomDrawerContent";
 
-const Tab = createBottomTabNavigator();
+const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
 
 // Home Stack for navigation within home section
@@ -93,90 +93,63 @@ const AllActivitiesStack: React.FC = () => {
   );
 };
 
-const MainTabNavigator: React.FC = () => {
+const MainDrawerNavigator: React.FC = () => {
   const { isAdmin } = useAuth();
 
   return (
-    <Tab.Navigator
+    <Drawer.Navigator
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: "white",
-          borderTopWidth: 1,
-          borderTopColor: "#e0e0e0",
-          paddingTop: 5,
-          paddingBottom: 5,
-          height: 70,
+        drawerType: "front",
+        drawerPosition: "left",
+        drawerStyle: {
+          width: 280,
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "600",
-        },
-        tabBarActiveTintColor: "#667eea",
-        tabBarInactiveTintColor: "#999",
+        overlayColor: "rgba(0, 0, 0, 0.5)",
       }}
     >
-      <Tab.Screen
+      <Drawer.Screen
         name="Home"
         component={HomeStack}
         options={{
-          tabBarLabel: "Accueil",
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 18, color }}>🏠</Text>
-          ),
+          drawerLabel: "Accueil",
         }}
       />
 
-      {/* Only show these tabs for students (non-admin users) */}
-      {!isAdmin && (
-        <>
-          <Tab.Screen
-            name="Categories"
-            component={CategoriesStack}
-            options={{
-              tabBarLabel: "Catégories",
-              tabBarIcon: ({ color, size }) => (
-                <Text style={{ fontSize: 18, color }}>📚</Text>
-              ),
-            }}
-          />
+      <Drawer.Screen
+        name="Categories"
+        component={CategoriesStack}
+        options={{
+          drawerLabel: "Catégories",
+        }}
+      />
 
-          <Tab.Screen
-            name="Levels"
-            component={LevelsStack}
-            options={{
-              tabBarLabel: "Niveaux",
-              tabBarIcon: ({ color, size }) => (
-                <Text style={{ fontSize: 18, color }}>🎓</Text>
-              ),
-            }}
-          />
+      <Drawer.Screen
+        name="Levels"
+        component={LevelsStack}
+        options={{
+          drawerLabel: "Niveaux",
+        }}
+      />
 
-          <Tab.Screen
-            name="AllActivities"
-            component={AllActivitiesStack}
-            options={{
-              tabBarLabel: "Activités",
-              tabBarIcon: ({ color, size }) => (
-                <Text style={{ fontSize: 18, color }}>📋</Text>
-              ),
-            }}
-          />
-        </>
-      )}
+      <Drawer.Screen
+        name="AllActivities"
+        component={AllActivitiesStack}
+        options={{
+          drawerLabel: "Activités",
+        }}
+      />
 
-      <Tab.Screen
+      <Drawer.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarLabel: "Profil",
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 18, color }}>👤</Text>
-          ),
+          drawerLabel: "Profil",
         }}
       />
-    </Tab.Navigator>
+    </Drawer.Navigator>
   );
 };
 
-export default MainTabNavigator;
+export default MainDrawerNavigator;

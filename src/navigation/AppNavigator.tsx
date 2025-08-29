@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 
 // Import screens and navigators
 import LoginScreen from "../screens/LoginScreen";
-import MainTabNavigator from "./MainTabNavigator";
+import MainDrawerNavigator from "./MainDrawerNavigator";
 
 const Stack = createStackNavigator();
 
@@ -57,8 +57,8 @@ const AppNavigator: React.FC = () => {
             options={{ animationTypeForReplace: "pop" }}
           />
         ) : (
-          // Main app stack with tab navigation - skip class selection for now
-          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+          // Main app stack with drawer navigation
+          <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

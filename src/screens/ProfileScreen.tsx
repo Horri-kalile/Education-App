@@ -7,10 +7,12 @@ import {
   Alert,
   Platform,
 } from "react-native";
+import { useNavigation, DrawerActions } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProfileScreen(): React.ReactElement {
   const { user, logout, isAdmin } = useAuth();
+  const navigation = useNavigation<any>();
 
   const handleLogout = async () => {
     console.log("ProfileScreen: handleLogout called");
@@ -114,7 +116,17 @@ export default function ProfileScreen(): React.ReactElement {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Profil</Text>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          >
+            <Text style={styles.menuIcon}>☰</Text>
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>Profil</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -156,6 +168,22 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     boxShadow: "0px 2px 3.84px rgba(0, 0, 0, 0.1)",
     elevation: 5,
+  },
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  menuButton: {
+    marginRight: 15,
+    padding: 5,
+  },
+  menuIcon: {
+    fontSize: 24,
+    color: "#333",
+    fontWeight: "bold",
+  },
+  headerContent: {
+    flex: 1,
   },
   title: {
     fontSize: 22,

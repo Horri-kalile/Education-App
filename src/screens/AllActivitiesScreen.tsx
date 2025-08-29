@@ -9,45 +9,26 @@ import {
   Dimensions,
 } from "react-native";
 import { useNavigation, DrawerActions } from "@react-navigation/native";
-import { useAuth } from "../context/AuthContext";
 import { useActivities } from "../context/ActivitiesContext";
-import ActivityFilter from "../components/ActivityFilterCompact";
 
 const { height: screenHeight } = Dimensions.get("window");
 
-export default function HomeScreen(): React.ReactElement {
-  const { user, isAdmin } = useAuth();
-  const { activities, isLoading, fetchActivities, filterActivities } =
-    useActivities();
-  const navigation = useNavigation<any>();
+const AllActivitiesScreen: React.FC = () => {
+  const { activities, isLoading, fetchActivities } = useActivities();
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null
-  );
-  const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
-    console.log("HomeScreen: Auth state:", {
-      user: user?.email,
-      isAdmin,
-      activitiesCount: activities?.length || 0,
-    });
-  }, [user, isAdmin, activities]);
+    // Fetch all activities without filters
+    fetchActivities();
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchActivities(selectedCategoryId, selectedLevelId);
+    await fetchActivities();
     setRefreshing(false);
   };
 
-  const handleFilterChange = (
-    categoryId: string | null,
-    levelId: string | null
-  ) => {
-    setSelectedCategoryId(categoryId);
-    setSelectedLevelId(levelId);
-    filterActivities(categoryId, levelId);
-  };
   const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString("fr-FR", {
       day: "numeric",
@@ -55,6 +36,18 @@ export default function HomeScreen(): React.ReactElement {
       year: "numeric",
     });
   };
+
+  const handleActivityPress = (activity: any) => {
+    navigation.navigate("ActivityDetail", { activity });
+  };
+
+  if (isLoading && activities.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Chargement des activités...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -66,20 +59,14 @@ export default function HomeScreen(): React.ReactElement {
           >
             <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
-          <Text style={styles.welcomeText}>
-            {isAdmin
-              ? "👨‍🏫 Espace Professeur"
-              : `👋 Bonjour ${user?.email?.split("@")[0] || "Utilisateur"}`}
-          </Text>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>📋 Toutes les Activités</Text>
+            <Text style={styles.headerSubtitle}>
+              {activities.length} activité{activities.length !== 1 ? "s" : ""}{" "}
+              disponible{activities.length !== 1 ? "s" : ""}
+            </Text>
+          </View>
         </View>
-        {isAdmin && (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate("AddActivity")}
-          >
-            <Text style={styles.addButtonText}>+ Nouvelle activité</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <ScrollView
@@ -93,25 +80,10 @@ export default function HomeScreen(): React.ReactElement {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Only show filter for students */}
-        {!isAdmin && (
-          <ActivityFilter
-            onFilterChange={handleFilterChange}
-            selectedCategoryId={selectedCategoryId}
-            selectedLevelId={selectedLevelId}
-          />
-        )}
-
-        <Text style={styles.sectionTitle}>
-          {isAdmin ? "Toutes les activités" : "Vos activités"}
-        </Text>
-
         {activities.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>
-              {isAdmin
-                ? "Aucune activité créée. Appuyez sur le bouton + pour créer votre première activité."
-                : "Aucune activité disponible pour le moment."}
+              Aucune activité disponible pour le moment.
             </Text>
           </View>
         ) : (
@@ -119,14 +91,8 @@ export default function HomeScreen(): React.ReactElement {
             <TouchableOpacity
               key={activity.id}
               style={styles.activityCard}
-              onPress={() =>
-                navigation.navigate("ActivityDetail", { activity })
-              }
+              onPress={() => handleActivityPress(activity)}
             >
-              <View style={styles.cardHeader}>
-                {isAdmin && <Text style={styles.createdByText}>Par vous</Text>}
-              </View>
-
               <Text style={styles.activityTitle}>{activity.title}</Text>
               <Text style={styles.activityDescription}>
                 {activity.description}
@@ -162,56 +128,59 @@ export default function HomeScreen(): React.ReactElement {
       </ScrollView>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#666",
+  },
   header: {
     backgroundColor: "white",
     padding: 20,
     paddingTop: 50,
-    boxShadow: "0px 2px 3.84px rgba(0, 0, 0, 0.1)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
     elevation: 5,
   },
   headerTop: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
+    alignItems: "flex-start",
   },
   menuButton: {
     marginRight: 15,
     padding: 5,
+    marginTop: 5,
   },
   menuIcon: {
     fontSize: 24,
     color: "#333",
     fontWeight: "bold",
   },
-  welcomeText: {
-    fontSize: 22,
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 24,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 5,
   },
-  classText: {
+  headerSubtitle: {
     fontSize: 16,
     color: "#666",
-    marginBottom: 15,
-  },
-  addButton: {
-    backgroundColor: "#667eea",
-    borderRadius: 8,
-    padding: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  addButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
   },
   content: {
     flex: 1,
@@ -221,12 +190,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 50,
     minHeight: screenHeight - 150, // Account for header height
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
   },
   emptyState: {
     alignItems: "center",
@@ -243,19 +206,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     marginBottom: 15,
-    boxShadow: "0px 1px 2.22px rgba(0, 0, 0, 0.22)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
     elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  createdByText: {
-    fontSize: 12,
-    color: "#666",
-    fontWeight: "500",
   },
   activityTitle: {
     fontSize: 18,
@@ -268,20 +223,6 @@ const styles = StyleSheet.create({
     color: "#666",
     lineHeight: 20,
     marginBottom: 15,
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  dateText: {
-    fontSize: 12,
-    color: "#999",
-  },
-  viewText: {
-    fontSize: 14,
-    color: "#667eea",
-    fontWeight: "500",
   },
   badgeContainer: {
     flexDirection: "row",
@@ -310,4 +251,20 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#374151",
   },
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  dateText: {
+    fontSize: 12,
+    color: "#999",
+  },
+  viewText: {
+    fontSize: 14,
+    color: "#667eea",
+    fontWeight: "500",
+  },
 });
+
+export default AllActivitiesScreen;
