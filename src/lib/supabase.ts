@@ -2,13 +2,11 @@ import { AppState, Platform } from "react-native";
 import "react-native-url-polyfill/auto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
+import { env } from "../utils/env";
 
-// TODO: Replace these with your actual Supabase project credentials
-// You can find these in your Supabase Dashboard -> Settings -> API
-// For now, using placeholder values to prevent app crashes
-const supabaseUrl = "https://zyvvzqqkjaxoinhhqdyy.supabase.co";
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5dnZ6cXFramF4b2luaGhxZHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDI1ODUsImV4cCI6MjA3MTM3ODU4NX0.jUNe40bCGkfFYr_NgXZw3DazNhshbjRWd2RcOU8Zdo8";
+// Supabase configuration from environment variables
+const supabaseUrl = env.SUPABASE_URL;
+const supabaseAnonKey = env.SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
